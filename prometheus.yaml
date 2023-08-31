@@ -1,0 +1,98 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds. 
+  evaluation_interval: 15s # Evaluate rules every 15 seconds.
+
+  # Attach these extra labels to all timeseries collected by this Prometheus instance.
+  external_labels:
+    monitor: 'codelab-monitor'
+
+rule_files:
+  - /etc/prom/rules/*.yaml
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets:
+            - "alertmanager:9093"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node-exporter'
+    scrape_interval: 30s
+    # tls_config:
+    #   insecure_skip_verify: true
+    static_configs:
+      - targets: ['<external_IP>:9100']
+    # bearer_token_file: /etc/prom/prometheus-sa-token
+
+  - job_name: 'kube-state-metrics'
+    scrape_interval: 30s
+    # tls_config:
+    #   insecure_skip_verify: true
+    static_configs:
+      - targets: ['<external_IP>:8080']
+    metric_relabel_configs:
+    - target_label: cluster
+      replacement: cluster-2 # your cluster name
+    # bearer_token_file: /etc/prom/prometheus-sa-token
+  
+  # - job_name: "kubernetes-service-endpoints"
+  #   scrape_interval: 5m
+  #   scrape_timeout: 4m
+  #   bearer_token_file: /etc/prom/prometheus-sa-token
+  #   tls_config:
+  #     insecure_skip_verify: true
+
+  #   kubernetes_sd_configs:
+  #     - role: endpoints
+  #       api_server: https://<K8s_api_external_ip>
+  #       tls_config:
+  #         insecure_skip_verify: true
+  #       namespaces:
+  #         names: ['monitoring']
+  #       authorization:
+  #         type: Bearer
+  #         credentials_file: /etc/prom/prometheus-sa-token
+
+  #   relabel_configs:
+  #     # Example relabel to scrape only endpoints that have
+  #     # "example.io/should_be_scraped = true" annotation.
+  #     - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+  #       action: keep
+  #       regex: true
+  #     #
+  #     # Example relabel to customize metric path based on endpoints
+  #     # "example.io/metric_path = <metric path>" annotation.
+  #     - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+  #       action: replace
+  #       target_label: __metrics_path__
+  #       regex: (.+)
+  #     #
+  #     # Example relabel to scrape only single, desired port for the service based
+  #     # on endpoints "example.io/scrape_port = <port>" annotation.
+  #     - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+  #       action: replace
+  #       regex: ([^:]+)(?::\d+)?;(\d+)
+  #       replacement: $1:$2
+  #       target_label: __address__
+  #     #
+  #     # Example relabel to configure scrape scheme for all service scrape targets
+  #     # based on endpoints "example.io/scrape_scheme = <scheme>" annotation.
+  #     - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+  #       action: replace
+  #       target_label: __scheme__
+  #       regex: (http?)
+      
+  #     - action: labelmap
+  #       regex: __meta_kubernetes_service_label_(.+)
+  #     - source_labels: [__meta_kubernetes_namespace]
+  #       action: replace
+  #       target_label: namespace
+  #     - source_labels: [__meta_kubernetes_service_name]
+  #       action: replace
+  #       target_label: service

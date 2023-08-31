@@ -1,0 +1,43 @@
+version: '3.1'
+
+volumes:
+ prometheus_data: {}
+ alertmanger_data: {}
+ grafana_data: {}
+
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus.yaml:/etc/prom/prometheus.yaml
+      - ./rules:/etc/prom/rules/
+      # - ./prometheus-sa-token:/etc/prom/prometheus-sa-token
+    command: 
+      - '--config.file=/etc/prom/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    ports:
+      - 9090:9090
+
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./dashboards:/var/lib/grafana/dashboards
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    volumes:
+      - alertmanger_data:/alertmanager
+      - ./alertmanager.yaml:/etc/alertmanager/alertmanager.yaml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yaml'
+      - '--storage.path=/alertmanager'
+    ports:
+      - 9093:9093

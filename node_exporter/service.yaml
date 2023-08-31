@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: node-exporter
+  namespace: monitoring
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '9100'
+    prometheus.io/path: "/metrics"
+    prometheus.io/scheme: "http"
+spec:
+  selector:
+      app: node-exporter
+  type: LoadBalancer
+  ports:
+  - name: node-exporter
+    protocol: TCP
+    port: 9100
+    targetPort: 9100

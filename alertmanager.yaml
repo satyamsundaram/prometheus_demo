@@ -1,0 +1,12 @@
+route:
+  receiver: 'web'
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+
+receivers:
+  - name: 'web'
+    webhook_configs:
+    - send_resolved: true
+      url: http://localhost:9093/api/v2/alerts
